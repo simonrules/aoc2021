@@ -27,62 +27,52 @@ class Day17(path: String) {
         stepToDistance.forEachIndexed { step, distance -> distanceToStep[distance] = step }
     }
 
-    // - The probe's x position increases by its x velocity.
-    // - The probe's y position increases by its y velocity.
-    // - Due to drag, the probe's x velocity changes by 1 toward the value 0; that is,
-    //   it decreases by 1 if it is greater than 0, increases by 1 if it is less than 0,
-    //   or does not change if it is already 0.
-    // - Due to gravity, the probe's y velocity decreases by 1.
+    private fun findHorizontalIterations(): MutableSet<Int> {
+        val iterations = mutableSetOf<Int>()
 
-    private fun inTargetArea(probe: Probe): Boolean {
-        return (probe.x in xRange && probe.y in yRange)
-    }
-
-    private fun beyondTargetArea(probe: Probe) : Boolean {
-        return (probe.x > xRange.last || probe.y < yRange.last)
-    }
-
-    fun part1(): Int {
-        val probe = Probe(0, 0)
-        val xVelInRange = mutableMapOf<Int, MutableSet<Int>>()
-        val yVelInRange = mutableMapOf<Int, MutableSet<Int>>()
-        val maxY = mutableMapOf<Int, Int>()
-
-        // check x velocities for intersection first
-        for (vel in 1 .. xRange.last) {
-            var x = probe.x
+        // check x velocities for intersection
+        val vel = 6
+        //for (vel in 1..xRange.last) {
+            var iteration = 0
+            var x = 0
             var xVel = vel
-            while (xVel > 0 && x !in xRange) {
+
+            while (xVel > 0 && !xRange.contains(x)) {
                 x += xVel
                 xVel--
+                iteration++
             }
-            while (xVel >= 0 && x in xRange) {
-                xVelInRange.putIfAbsent(x, mutableSetOf())
-                xVelInRange[x]!!.add(vel)
+            while (xVel >= 0 && xRange.contains(x)) {
+                //println("$vel $xVel $x $iteration")
+                iterations.add(iteration)
                 x += xVel
                 xVel--
+                iteration++
+            }
+        //}
+
+        return iterations
+    }
+
+    private fun findVerticalVelocities(iterations: Int): MutableSet<Int> {
+        val velocities = mutableSetOf<Int>()
+
+        for (vel in 1..yRange.last) {
+            for (i in 1..iterations) {
+
             }
         }
 
-        // then y
-        for (vel in 1 .. 100) {
-            var max = probe.y
-            var y = probe.y
-            var yVel = vel
-            while (y >= yRange.last && y !in yRange) {
-                y += yVel
-                yVel--
-                if (y > max) {
-                    max = y
-                }
-            }
-            maxY[vel] = max
-            while (y >= yRange.first && y in yRange) {
-                yVelInRange.putIfAbsent(y, mutableSetOf())
-                yVelInRange[y]!!.add(vel)
-                y += yVel
-                yVel--
-            }
+        return velocities
+    }
+
+    fun part1(): Int {
+        val xIterations = findHorizontalIterations()
+
+        // We need to find y velocities that end up in the target area in
+        // a particular number of iterations.
+        val yVelocities = xIterations.forEach {
+            findVerticalVelocities(it)
         }
 
         return 0
