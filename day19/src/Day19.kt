@@ -1,4 +1,5 @@
 import java.io.File
+import java.util.SortedSet
 
 data class Point(val x: Int, val y: Int, val z: Int)
 data class Scanner(val id: Int, val beacon: MutableList<Point>)
@@ -21,16 +22,16 @@ class Day19(path: String) {
         }
     }
 
-    fun getXTranslatedList(scanner: Scanner): List<Int> {
+    private fun getXTranslated(scanner: Scanner): Set<Int> {
         val list = scanner.beacon.map { it.x }.sorted()
         val min = list.first()
-        return list.map { it - min }
+        return list.map { it - min }.toSet()
     }
 
-    fun getXFlippedTranslatedList(scanner: Scanner): List<Int> {
+    private fun getXFlippedTranslated(scanner: Scanner): Set<Int> {
         val list = scanner.beacon.map { -it.x }.sorted()
         val min = list.first()
-        return list.map { it - min }
+        return list.map { it - min }.toSet()
     }
 
     fun getYTranslatedList(scanner: Scanner): List<Int> {
@@ -57,41 +58,21 @@ class Day19(path: String) {
         return list.map { it - min }
     }
 
-    fun difference(sorted: List<Int>): List<Int> {
-        val diff = mutableListOf<Int>()
-
-        for (i in 1 until sorted.size) {
-            diff.add(sorted[i] - sorted[i - 1])
+    private fun compareSets(a: Set<Int>, b: Set<Int>): Boolean {
+        for (offset in -b.maxOrNull()!! until a.maxOrNull()!!) {
+            val newSet = b.map { it + offset }
+            if (newSet.intersect(a).size == 12) {
+                return true
+            }
         }
 
-        return diff
-    }
-
-    fun compare(a: Scanner, b: Scanner) {
-        val listA = a.beacon.map { it.x }.sorted()
-        val diffA = difference(listA)
-        val listB = b.beacon.map { -it.x }.sorted()
-        val diffB = difference(listB)
-        println(diffA.intersect(diffB))
-        /*val translated = getXTranslatedList(a)
-
-        if (translated.intersect(getXTranslatedList(b)).size >= 12) {
-            println("x")
-        } else if (translated.intersect(getXFlippedTranslatedList(b)).size >= 12) {
-            println("x flipped")
-        } else if (translated.intersect(getYTranslatedList(b)).size >= 12) {
-            println("y")
-        } else if (translated.intersect(getYFlippedTranslatedList(b)).size >= 12) {
-            println("y flipped")
-        } else if (translated.intersect(getZTranslatedList(b)).size >= 12) {
-            println("z")
-        } else if (translated.intersect(getZFlippedTranslatedList(b)).size >= 12) {
-            println("z flipped")
-        }*/
+        return false
     }
 
     fun part1(): Int {
-        compare(scanner[0], scanner[1])
+        val a = getXTranslated(scanner[0])
+        val b = getXFlippedTranslated(scanner[1])
+        compareSets(a, b)
         return 0
     }
 
