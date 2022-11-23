@@ -2,6 +2,8 @@ import java.io.File
 
 class Day16(path: String) {
     var binary = ""
+    var versionTotal = 0
+
     init {
         val text = File(path).readText()
 
@@ -27,7 +29,67 @@ class Day16(path: String) {
             })
         }
     }
+
+    private fun parsePacket(pos: Int): Int {
+        val version = getValue(binary.substring(pos, pos + 3))
+        versionTotal += version
+        val type = getValue(binary.substring(pos + 3, pos + 6))
+
+        return if (type == 4) {
+            parseLiteral(pos + 6)
+        } else {
+            // operator
+            0
+            //parseOperator(pos + 6)
+        }
+    }
+
+    private fun parseLiteral(pos: Int): Int {
+        var pos = 0
+        var value = 0
+        var lastOne = false
+        while (!lastOne) {
+            lastOne = binary[pos] == '0'
+            value *= 16
+            value += getValue(binary.substring(pos + 1, pos + 5))
+            pos += 5
+        }
+
+        return pos
+    }
+
+    /*private fun parseOperator(pos: Int): Int {
+        var pos = 1
+
+        if (binary[0] == '0') {
+            var length = getValue(binary.substring(pos, pos + 15))
+            pos += 15
+            println("length=$length")
+            while (length > 0) {
+                val bitsRead = parsePacket(binary.substring(pos, pos + length))
+                length -= bitsRead
+            }
+        } else {
+            val number = getValue(binary.substring(pos, pos + 11))
+            println("number=$number")
+        }
+
+        return 0
+    }*/
+
+    private fun getValue(bits: String): Int {
+        var value = 0
+
+        for (i in 0..bits.lastIndex) {
+            value *= 2
+            value += if (bits[i] == '1') 1 else 0
+        }
+
+        return value
+    }
+
     fun part1(): Int {
+        parsePacket("110100101111111000101000")
 
         return 0
     }

@@ -2,106 +2,39 @@ import java.io.File
 
 class Day20(filename: String) {
     private val algorithm: List<Boolean>
-    private var w = 0
-    private var h = 0
-    private var left = 0
-    private var top = 0
+    private var image = ArrayMap()
 
-    private val imageW = 1000
-    private val imageH = 1000
-    private var image = Array(imageW * imageH) { false }
-    private val cx = imageW / 2
-    private val cy = imageH / 2
-
-        init {
-        var firstBlock = true
-        val lines = StringBuilder()
+    init {
+        var firstLine = true
         var row = 0
+        var algorithmString = ""
         File(filename).forEachLine { line ->
             if (line.isBlank()) {
-                firstBlock = false
+                firstLine = false
             } else {
-                if (firstBlock) {
-                    lines.append(line)
+                if (firstLine) {
+                    algorithmString = line
                 } else {
-                    w = line.length
                     line.forEachIndexed { col, c ->
-                        setMapAt(image, col, row, c == '#')
+                        image.setAt(col + image.cx, row + image.cy, c == '#')
                     }
                     row++
                 }
-                h = row
-            }
-        }
-        algorithm = lines.map { it == '#' }
-    }
-
-    private fun getMapAt(map: Array<Boolean>, x: Int, y: Int): Boolean {
-        val xOffset = x + cx
-        val yOffset = y + cy
-        return map[yOffset * imageW + xOffset]
-    }
-
-    private fun setMapAt(map: Array<Boolean>, x: Int, y: Int, value: Boolean) {
-        val xOffset = x + cx
-        val yOffset = y + cy
-        map[yOffset * imageW + xOffset] = value
-    }
-
-    private fun iteration() {
-        // Expand image
-        left--
-        top--
-        w += 2
-        h += 2
-        val right = left + w
-        val bottom = top + h
-
-        // Use newImage so we don't modify as we go
-        val newImage = Array(imageW * imageH) { false }
-
-        for (i in top until bottom) {
-            for (j in left until right) {
-                val value = getSquareValue(j, i)
-                setMapAt(newImage, j, i, algorithm[value])
             }
         }
 
-        image = newImage
+        algorithm = algorithmString.map { it == '#' }
     }
 
-    private fun getSquareValue(x: Int, y: Int): Int {
-        var value = 0
-        for (i in x - 1 .. x + 1) {
-            for (j in y - 1 .. y + 1) {
-                val pixel = getMapAt(image, j, i)
-                value *= 2
-                value += if (pixel) 1 else 0
-            }
-        }
-        return value
-    }
-
-    private fun printImage() {
-        val right = left + w
-        val bottom = top + h
-
-        for (i in top until bottom) {
-            for (j in left until right) {
-                print(if (getMapAt(image, j, i)) '#' else '.')
-            }
-            println()
-        }
-    }
-
-    fun part1() {
-        //iteration()
-        //printImage()
-        println(getSquareValue(0, -1))
+    fun part1(): Int {
+        image.iterate(algorithm)
+        return image.iterate(algorithm)
     }
 }
 
 fun main() {
     val aoc = Day20("day20/test1.txt")
-    aoc.part1()
+    // 5278 is too high
+    // 5073 is too low
+    println(aoc.part1())
 }
