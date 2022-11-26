@@ -38,44 +38,48 @@ class Day16(path: String) {
         return if (type == 4) {
             parseLiteral(pos + 6)
         } else {
-            // operator
-            0
-            //parseOperator(pos + 6)
+            parseOperator(pos + 6)
         }
     }
 
     private fun parseLiteral(pos: Int): Int {
-        var pos = 0
+        var cur = pos
         var value = 0
         var lastOne = false
         while (!lastOne) {
-            lastOne = binary[pos] == '0'
-            value *= 16
-            value += getValue(binary.substring(pos + 1, pos + 5))
-            pos += 5
+            lastOne = binary[cur] == '0'
+            value *= 16 // number is in chunks of 4 bits
+            value += getValue(binary.substring(cur + 1, cur + 5))
+            cur += 5
         }
+        //println("literal=$value")
 
-        return pos
+        return cur
     }
 
-    /*private fun parseOperator(pos: Int): Int {
-        var pos = 1
-
-        if (binary[0] == '0') {
-            var length = getValue(binary.substring(pos, pos + 15))
-            pos += 15
-            println("length=$length")
+    private fun parseOperator(pos: Int): Int {
+        var cur = pos
+        if (binary[cur] == '0') {
+            var length = getValue(binary.substring(cur + 1, cur + 16))
+            cur += 16
+            //println("length=$length")
             while (length > 0) {
-                val bitsRead = parsePacket(binary.substring(pos, pos + length))
-                length -= bitsRead
+                val newCur = parsePacket(cur)
+                length -= (newCur - cur)
+                cur = newCur
             }
         } else {
-            val number = getValue(binary.substring(pos, pos + 11))
-            println("number=$number")
+            var number = getValue(binary.substring(cur + 1, cur + 12))
+            cur += 12
+            //println("number=$number")
+            while (number > 0) {
+                cur = parsePacket(cur)
+                number--
+            }
         }
 
-        return 0
-    }*/
+        return cur
+    }
 
     private fun getValue(bits: String): Int {
         var value = 0
@@ -89,19 +93,18 @@ class Day16(path: String) {
     }
 
     fun part1(): Int {
-        parsePacket("110100101111111000101000")
+        parsePacket(0)
 
-        return 0
+        return versionTotal
     }
 
     fun part2(): Int {
-
         return 0
     }
 }
 
 fun main() {
-    val aoc = Day16("day16/test1.txt")
+    val aoc = Day16("day16/input.txt")
     println(aoc.part1())
     println(aoc.part2())
 }

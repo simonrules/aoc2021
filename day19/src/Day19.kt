@@ -6,6 +6,7 @@ data class Scanner(val id: Int, val beacon: MutableList<Point>)
 
 class Day19(path: String) {
     private val scanner = mutableListOf<Scanner>()
+    private val overlapCount = 12
 
     init {
         var currentScanner: Scanner? = null
@@ -22,57 +23,21 @@ class Day19(path: String) {
         }
     }
 
-    private fun getXTranslated(scanner: Scanner): Set<Int> {
-        val list = scanner.beacon.map { it.x }.sorted()
-        val min = list.first()
-        return list.map { it - min }.toSet()
+    private fun isOverlap(a: Set<Int>, b: Set<Int>): Boolean {
+        return true
     }
 
-    private fun getXFlippedTranslated(scanner: Scanner): Set<Int> {
-        val list = scanner.beacon.map { -it.x }.sorted()
-        val min = list.first()
-        return list.map { it - min }.toSet()
-    }
+    private fun compareScanners(a: Int, b: Int): Boolean {
 
-    fun getYTranslatedList(scanner: Scanner): List<Int> {
-        val list = scanner.beacon.map { it.y }.sorted()
-        val min = list.first()
-        return list.map { it - min }
-    }
-
-    fun getYFlippedTranslatedList(scanner: Scanner): List<Int> {
-        val list = scanner.beacon.map { -it.y }.sorted()
-        val min = list.first()
-        return list.map { it - min }
-    }
-
-    fun getZTranslatedList(scanner: Scanner): List<Int> {
-        val list = scanner.beacon.map { it.z }.sorted()
-        val min = list.first()
-        return list.map { it - min }
-    }
-
-    fun getZFlippedTranslatedList(scanner: Scanner): List<Int> {
-        val list = scanner.beacon.map { -it.z }.sorted()
-        val min = list.first()
-        return list.map { it - min }
-    }
-
-    private fun compareSets(a: Set<Int>, b: Set<Int>): Boolean {
-        for (offset in -b.maxOrNull()!! until a.maxOrNull()!!) {
-            val newSet = b.map { it + offset }
-            if (newSet.intersect(a).size == 12) {
-                return true
-            }
-        }
-
-        return false
+        return true
     }
 
     fun part1(): Int {
-        val a = getXTranslated(scanner[0])
-        val b = getXFlippedTranslated(scanner[1])
-        compareSets(a, b)
+        val set0 = scanner[0].beacon.map { it.x }.toSortedSet()
+        val set1 = scanner[1].beacon.map { -it.x + 68 }.toSortedSet()
+        val intersect = set0.intersect(set1)
+        //println(isOverlap(list0, list1))
+        //println(compareScanners(0, 1))
         return 0
     }
 
