@@ -30,7 +30,7 @@ class Day16(path: String) {
         }
     }
 
-    private fun parsePacket(pos: Int): Int {
+    private fun parsePacket(pos: Int): Pair<Int, Long> {
         val version = getValue(binary.substring(pos, pos + 3))
         versionTotal += version
         val type = getValue(binary.substring(pos + 3, pos + 6))
@@ -38,13 +38,13 @@ class Day16(path: String) {
         return if (type == 4) {
             parseLiteral(pos + 6)
         } else {
-            parseOperator(pos + 6)
+            parseOperator(pos + 6, type)
         }
     }
 
-    private fun parseLiteral(pos: Int): Int {
+    private fun parseLiteral(pos: Int): Pair<Int, Long> {
         var cur = pos
-        var value = 0
+        var value = 0L
         var lastOne = false
         while (!lastOne) {
             lastOne = binary[cur] == '0'
@@ -54,31 +54,49 @@ class Day16(path: String) {
         }
         //println("literal=$value")
 
-        return cur
+        return Pair(cur, value)
     }
 
-    private fun parseOperator(pos: Int): Int {
+    private fun operation(type: Int, values: List<Long>): Long {
+        return when(type) {
+            0 -> values.sum()
+            1 -> values.reduce { acc, i ->  acc * i }
+            2 -> values.min()
+            3 -> values.max()
+            5 -> if (values[0] > values[1]) 1 else 0
+            6 -> if (values[0] < values[1]) 1 else 0
+            7 -> if (values[0] == values[1]) 1 else 0
+            else -> 0
+        }
+    }
+
+    private fun parseOperator(pos: Int, type: Int): Pair<Int, Long> {
         var cur = pos
+        val values = mutableListOf<Long>()
+
         if (binary[cur] == '0') {
             var length = getValue(binary.substring(cur + 1, cur + 16))
             cur += 16
             //println("length=$length")
             while (length > 0) {
-                val newCur = parsePacket(cur)
+                val (newCur, value) = parsePacket(cur)
                 length -= (newCur - cur)
                 cur = newCur
+                values.add(value)
             }
         } else {
             var number = getValue(binary.substring(cur + 1, cur + 12))
             cur += 12
             //println("number=$number")
             while (number > 0) {
-                cur = parsePacket(cur)
+                val (newCur, value) = parsePacket(cur)
                 number--
+                cur = newCur
+                values.add(value)
             }
         }
 
-        return cur
+        return Pair(cur, operation(type, values))
     }
 
     private fun getValue(bits: String): Int {
@@ -98,8 +116,10 @@ class Day16(path: String) {
         return versionTotal
     }
 
-    fun part2(): Int {
-        return 0
+    fun part2(): Long {
+        val (_, value) = parsePacket(0)
+
+        return value
     }
 }
 
