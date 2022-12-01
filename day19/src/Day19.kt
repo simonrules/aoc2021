@@ -1,4 +1,5 @@
 import java.io.File
+import kotlin.math.abs
 
 data class Point(val x: Int, val y: Int, val z: Int) {
     operator fun plus(other: Point): Point =
@@ -6,8 +7,21 @@ data class Point(val x: Int, val y: Int, val z: Int) {
 
     operator fun minus(other: Point): Point =
         Point(x - other.x, y - other.y, z - other.z)
+
+    fun manhattan(other: Point): Int {
+        return abs(x - other.x) + abs(y - other.y) + abs(z - other.z)
+    }
 }
-data class Scanner(val beacon: Set<Point>, var solved: Boolean = false)
+data class Scanner(
+    val beacon: Set<Point>,
+    var solved: Boolean = false,
+    var offset: Point = Point(0, 0, 0)
+)
+
+data class Result(
+    val beacons: Set<Point>,
+    val offset: Point
+)
 
 class Day19(path: String) {
     private val scanner = mutableListOf<Scanner>()
@@ -67,7 +81,7 @@ class Day19(path: String) {
         }
     }
 
-    private fun compareBeacons(aSet: Set<Point>, bSet: Set<Point>): Set<Point>? {
+    private fun compareBeacons(aSet: Set<Point>, bSet: Set<Point>): Result? {
         (0..23).forEach { combination ->
             val bSetRotated = bSet.map { rotate(it, combination) }.toSet()
 
@@ -78,7 +92,7 @@ class Day19(path: String) {
 
                     val intersect = aSet.intersect(bSetRotatedTranslated)
                     if (intersect.size >= overlapCount) {
-                        return bSetRotatedTranslated
+                        return Result(bSetRotatedTranslated, offset)
                     }
                 }
             }
@@ -105,8 +119,8 @@ class Day19(path: String) {
                     val result = compareBeacons(scanner[i].beacon, scanner[j].beacon)
                     if (result != null) {
                         println("scanners $i and $j overlap")
-                        finalBeacons.addAll(result)
-                        scanner[j] = Scanner(result, true)
+                        finalBeacons.addAll(result.beacons)
+                        scanner[j] = Scanner(result.beacons, true, result.offset)
                     }
                 }
             }
@@ -116,7 +130,22 @@ class Day19(path: String) {
     }
 
     fun part2(): Int {
-        return 0
+        var max = 0
+
+        for (a in scanner) {
+            for (b in scanner) {
+                if (a.offset == b.offset) {
+                    continue
+                }
+
+                val distance = a.offset.manhattan(b.offset)
+                if (distance > max) {
+                    max = distance
+                }
+            }
+        }
+
+        return max
     }
 }
 
