@@ -1,4 +1,4 @@
-class ArrayMap(var width: Int = 250, var height: Int = 250) {
+class ArrayMap(private var width: Int = 800, private var height: Int = 800) {
     private var image = Array(width * height) { false }
 
     val cx get() = width / 2
@@ -7,12 +7,10 @@ class ArrayMap(var width: Int = 250, var height: Int = 250) {
     private var xRange = IntRange(cx, cx)
     private var yRange = IntRange(cy, cy)
 
+    private var iteration = 0
+
     private fun getAt(x: Int, y: Int): Boolean {
         return image[y * width + x]
-    }
-
-    private fun maybeExtendImage(x: Int, y: Int) {
-
     }
 
     private fun maybeExtendRange(x: Int, y: Int) {
@@ -31,7 +29,6 @@ class ArrayMap(var width: Int = 250, var height: Int = 250) {
 
     fun setAt(x: Int, y: Int, value: Boolean) {
         maybeExtendRange(x, y)
-        maybeExtendImage(x, y)
         image[y * width + x] = value
     }
 
@@ -48,14 +45,13 @@ class ArrayMap(var width: Int = 250, var height: Int = 250) {
     }
 
     fun iterate(algorithm: List<Boolean>): Int {
-        // Special case: if algorithm[0] == true then any black surrounded pixel will turn true
         var count = 0
 
         // Use newImage so we don't modify as we go
         val newImage = Array(width * height) { false }
 
-        for (i in 1 until height - 1) {
-            for (j in 1 until width - 1) {
+        for (i in yRange.first - 1 .. yRange.last + 1) {
+            for (j in xRange.first - 1 .. xRange.last + 1) {
                 val value = getSquareValue(j, i)
                 if (algorithm[value]) {
                     count++
@@ -64,19 +60,43 @@ class ArrayMap(var width: Int = 250, var height: Int = 250) {
             }
         }
 
-        image = newImage
-
+        // Expand the range for the new pixels
         xRange = IntRange(xRange.first - 1, xRange.last + 1)
         yRange = IntRange(yRange.first - 1, yRange.last + 1)
+
+        // Special case: if algorithm[0] == true then any black surrounded pixel will turn true
+        // at the end of an even iteration.
+        if (algorithm[0] && iteration % 2 == 0) {
+            drawBorder(newImage, 1)
+            drawBorder(newImage, 2)
+        }
+
+        image = newImage
+        iteration++
 
         return count
     }
 
+    private fun drawBorder(image: Array<Boolean>, offset: Int) {
+        val left = xRange.first - offset
+        val right = xRange.last + offset
+        val bottom = yRange.first - offset
+        val top = yRange.last + offset
+
+        // Draw box around image
+        for (i in bottom..top) {
+            image[i * width + left] = true
+            image[i * width + right] = true
+        }
+        for (j in left..right) {
+            image[bottom * width + j] = true
+            image[top * width + j] = true
+        }
+    }
+
     fun print() {
-        //for (i in yRange) {
-        //    for (j in xRange) {
-        for (i in 0 until height) {
-            for (j in 0 until width) {
+        for (i in yRange.first - 2 .. yRange.last + 2) {
+            for (j in xRange.first - 2 .. yRange.last + 2) {
                 print(if (getAt(j, i)) '#' else '.')
             }
             println()

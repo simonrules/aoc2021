@@ -28,13 +28,24 @@ class Day20(filename: String) {
 
     fun part1(): Int {
         image.iterate(algorithm)
-        return image.iterate(algorithm)
+        image.iterate(algorithm)
+
+        return image.count()
+    }
+
+    fun part2(): Int {
+        repeat(50) {
+            image.iterate(algorithm)
+        }
+
+        return image.count()
     }
 }
 
 fun main() {
-    val aoc = Day20("day20/test1.txt")
-    // 5278 is too high
-    // 5073 is too low
-    println(aoc.part1())
+    val aoc = Day20("day20/input.txt")
+
+    // Can't run part 1 then 2, and can't be bothered to fix it.
+    //println(aoc.part1())
+    println(aoc.part2())
 }
