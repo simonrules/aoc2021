@@ -1,44 +1,118 @@
 import java.io.File
-import java.util.SortedSet
 
-data class Point(val x: Int, val y: Int, val z: Int)
-data class Scanner(val id: Int, val beacon: MutableList<Point>)
+data class Point(val x: Int, val y: Int, val z: Int) {
+    operator fun plus(other: Point): Point =
+        Point(x + other.x, y + other.y, z + other.z)
+
+    operator fun minus(other: Point): Point =
+        Point(x - other.x, y - other.y, z - other.z)
+}
+data class Scanner(val beacon: Set<Point>, var solved: Boolean = false)
 
 class Day19(path: String) {
     private val scanner = mutableListOf<Scanner>()
+    private val finalBeacons = mutableSetOf<Point>()
     private val overlapCount = 12
 
     init {
-        var currentScanner: Scanner? = null
+        var beacons: MutableSet<Point> = mutableSetOf()
         File(path).forEachLine { line ->
             if (line.contains("---")) {
-                val id = line.substring(12, line.length - 4).toInt()
-                currentScanner = Scanner(id, mutableListOf())
-                scanner.add(currentScanner!!)
+                beacons = mutableSetOf()
             } else if (line.isNotEmpty()) {
                 val coord = line.split(",")
                 val point = Point(coord[0].toInt(), coord[1].toInt(), coord[2].toInt())
-                currentScanner!!.beacon.add(point)
+                beacons.add(point)
+            } else {
+                scanner.add(Scanner(beacons))
             }
+        }
+        scanner.add(Scanner(beacons))
+    }
+
+    private fun rotate(p: Point, combination: Int): Point {
+        // From https://www.euclideanspace.com/maths/algebra/matrix/transforms/examples/index.htm
+        return when (combination) {
+            0 -> Point(p.x, p.y, p.z)
+            1 -> Point(p.x, p.z, -p.y)
+            2 -> Point(p.x, -p.y, -p.z)
+            3 -> Point(p.x, -p.z, p.y)
+
+            4 -> Point(-p.y, p.x, p.z)
+            5 -> Point(p.z, p.x, p.y)
+            6 -> Point(p.y, p.x, -p.z)
+            7 -> Point(-p.z, p.x, -p.y)
+
+            8 -> Point(-p.x, -p.y, p.z)
+            9 -> Point(-p.x, -p.z, -p.y)
+            10 -> Point(-p.x, p.y, -p.z)
+            11 -> Point(-p.x, p.z, p.y)
+
+            12 -> Point(p.y, -p.x, p.z)
+            13 -> Point(p.z, -p.x, -p.y)
+            14 -> Point(-p.y, -p.x, -p.z)
+            15 -> Point(-p.z, -p.x, p.y)
+
+            16 -> Point(-p.z, p.y, p.x)
+            17 -> Point(p.y, p.z, p.x)
+            18 -> Point(p.z, -p.y, p.x)
+            19 -> Point(-p.y, -p.z, p.x)
+
+            20 -> Point(-p.z, -p.y, -p.x)
+            21 -> Point(-p.y, p.z, -p.x)
+            22 -> Point(p.z, p.y, -p.x)
+            23 -> Point(p.y, -p.z, -p.x)
+
+            else -> Point(0, 0, 0)
         }
     }
 
-    private fun isOverlap(a: Set<Int>, b: Set<Int>): Boolean {
-        return true
-    }
+    private fun compareBeacons(aSet: Set<Point>, bSet: Set<Point>): Set<Point>? {
+        (0..23).forEach { combination ->
+            val bSetRotated = bSet.map { rotate(it, combination) }.toSet()
 
-    private fun compareScanners(a: Int, b: Int): Boolean {
+            aSet.forEach { a ->
+                bSetRotated.forEach { b ->
+                    val offset = a.minus(b)
+                    val bSetRotatedTranslated = bSetRotated.map { it.plus(offset) }.toSet()
 
-        return true
+                    val intersect = aSet.intersect(bSetRotatedTranslated)
+                    if (intersect.size >= overlapCount) {
+                        return bSetRotatedTranslated
+                    }
+                }
+            }
+        }
+
+        return null
     }
 
     fun part1(): Int {
-        val set0 = scanner[0].beacon.map { it.x }.toSortedSet()
-        val set1 = scanner[1].beacon.map { -it.x + 68 }.toSortedSet()
-        val intersect = set0.intersect(set1)
-        //println(isOverlap(list0, list1))
-        //println(compareScanners(0, 1))
-        return 0
+        scanner[0].solved = true
+        finalBeacons.addAll(scanner[0].beacon)
+
+        while (scanner.count { it.solved } < scanner.size) {
+            for (i in 0 until scanner.size) {
+                // Don't anchor on unsolved scanner
+                if (!scanner[i].solved) {
+                    continue
+                }
+                for (j in 0 until scanner.size) {
+                    // Don't compare against self, don't compare with already solved scanner
+                    if ((i == j) || scanner[j].solved) {
+                        continue
+                    }
+                    val result = compareBeacons(scanner[i].beacon, scanner[j].beacon)
+                    if (result != null) {
+                        println("scanners $i and $j overlap")
+                        finalBeacons.addAll(result)
+                        scanner[j] = Scanner(result, true)
+                    }
+                }
+            }
+        }
+
+        return finalBeacons.size
     }
 
     fun part2(): Int {
@@ -47,7 +121,7 @@ class Day19(path: String) {
 }
 
 fun main() {
-    val aoc = Day19("day19/test1.txt")
+    val aoc = Day19("day19/input.txt")
 
     println(aoc.part1())
     println(aoc.part2())
