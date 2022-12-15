@@ -61,8 +61,8 @@ class Day16(path: String) {
         return when(type) {
             0 -> values.sum()
             1 -> values.reduce { acc, i ->  acc * i }
-            2 -> values.min()
-            3 -> values.max()
+            2 -> values.minOrNull()!!
+            3 -> values.maxOrNull()!!
             5 -> if (values[0] > values[1]) 1 else 0
             6 -> if (values[0] < values[1]) 1 else 0
             7 -> if (values[0] == values[1]) 1 else 0
